@@ -62,6 +62,7 @@ class RMSNorm(nn.Module):
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
         self.eps = eps
+        
         # The gamma parameter
         self.weight = nn.Parameter(torch.ones(dim))
 
