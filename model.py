@@ -65,11 +65,11 @@ def repeat_kv(x: torch.Tensor, n_rep: int) -> torch.Tensor:
         return x
     
     return (
-        # (B, Seq_Len, N_KV_Heads, 1, Head_Dim)
+        # (batch, Seq_Len, N_KV_Heads, 1, Head_Dim)
         x[:, :, :, None, :]
-        # (B, Seq_Len, N_KV_Heads, N_Rep, Head_Dim)
+        # (batch, Seq_Len, N_KV_Heads, N_Rep, Head_Dim)
         .expand(batch_size, seq_len, n_kv_heads, n_rep, head_dim)
-        # (B, Seq_Len, N_KV_Heads * N_Rep, Head_Dim)
+        # (batch, Seq_Len, N_KV_Heads * N_Rep, Head_Dim)
         .reshape(batch_size, seq_len, n_kv_heads * n_rep, head_dim)
     )
 
