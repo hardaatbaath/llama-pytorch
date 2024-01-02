@@ -66,8 +66,9 @@ class LLaMA:
         # Convert each prompt into tokens
         prompt_tokens = [self.tokenizer.encode(prompt, out_type = int, add_bos = True, add_eos = False) for prompt in prompts]
 
-        # Make sure the batch size is not too large
         batch_size = len(prompt_tokens)
+
+         # Make sure the batch size is not too large
         assert batch_size <= self.args.max_batch_size, f"batch size must be less than or equal to {self.args.max_batch_size}"
         max_prompt_len = max(len(prompt) for prompt in prompt_tokens)
 
