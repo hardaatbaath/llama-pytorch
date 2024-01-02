@@ -58,6 +58,22 @@ def apply_rotary_embeddings(x: torch.Tensor, freqs_complex: torch.Tensor, device
     return x_out.type_as(x).to(device)
 
 
+def repeat_kv(x: torch.Tensor, n_rep: int) -> torch.Tensor:
+
+    batch_size, seq_len, n_kv_heads, head_dim = x.shape
+    if n_rep == 1:
+        return x
+    
+    return (
+        # (B, Seq_Len, N_KV_Heads, 1, Head_Dim)
+        x[:, :, :, None, :]
+        # (B, Seq_Len, N_KV_Heads, N_Rep, Head_Dim)
+        .expand(batch_size, seq_len, n_kv_heads, n_rep, head_dim)
+        # (B, Seq_Len, N_KV_Heads * N_Rep, Head_Dim)
+        .reshape(batch_size, seq_len, n_kv_heads * n_rep, head_dim)
+    )
+
+
 class RMSNorm(nn.Module):
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
@@ -116,9 +132,9 @@ class SelfAttention(nn.Module):
         xv = xv.view(batch_size, seq_len, self.n_kv_heads, self.head_dim)
 
         # (batch, 1, H_Q, Head_Dim) -> (batch, 1, H_Q, Head_Dim)
-        xq = apply_rotary_embeddings(xq, freqs_complex, device=x.device)
+        xq = apply_rotary_embeddings(xq, freqs_complex, device = x.device)
         # (batch, 1, H_KV, Head_Dim) -> (batch, 1, H_KV, Head_Dim)
-        xk = apply_rotary_embeddings(xk, freqs_complex, device=x.device)
+        xk = apply_rotary_embeddings(xk, freqs_complex, device = x.device)
 
         # Replace the entry in the cache
         self.cache_k[:batch_size, start_pos : start_pos + seq_len] = xk
@@ -130,7 +146,6 @@ class SelfAttention(nn.Module):
         values = self.cache_v[:batch_size, : start_pos + seq_len]
 
         # Since every group of Q shares the same K and V heads, just repeat the K and V heads for every Q in the same group.
-
         # (batch, Seq_Len_KV, H_KV, Head_Dim) -> (batch, Seq_Len_KV, H_Q, Head_Dim)
         keys = repeat_kv(keys, self.n_rep)
         # (batch, Seq_Len_KV, H_KV, Head_Dim) -> (batch, Seq_Len_KV, H_Q, Head_Dim)
@@ -146,7 +161,7 @@ class SelfAttention(nn.Module):
         # (batch, H_Q, 1, Head_Dim) @ (batch, H_Q, Head_Dim, Seq_Len_KV) -> (batch, H_Q, 1, Seq_Len_KV)
         scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
         # (batch, H_Q, 1, Seq_Len_KV) -> (batch, H_Q, 1, Seq_Len_KV)
-        scores = F.softmax(scores.float(), dim=-1).type_as(xq)
+        scores = F.softmax(scores.float(), dim = -1).type_as(xq)
 
         # (batch, H_Q, 1, Seq_Len) @ (batch, H_Q, Seq_Len_KV, Head_Dim) -> (batch, H_Q, 1, Head_Dim)
         output = torch.matmul(scores, values)
