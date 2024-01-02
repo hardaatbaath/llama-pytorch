@@ -155,8 +155,8 @@ if __name__ == '__main__':
     ]
 
     model = LLaMA.build(
-        checkpoints_dir = 'llama-2-7b/',
-        tokenizer_path = 'tokenizer.model',
+        checkpoints_dir = 'llama-2-7b/',    # The name of the directory where the checkpoints are saved
+        tokenizer_path = 'tokenizer.model', # The path to the tokenizer
         load_model = True,
         max_seq_len = 1024,
         max_batch_size = len(prompts),
