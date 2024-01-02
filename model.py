@@ -97,12 +97,8 @@ class SelfAttention(nn.Module):
         self.cache_k = torch.zeros((args.max_batch_size, args.max_seq_len, self.n_kv_heads, self.head_dim))
         self.cache_v = torch.zeros((args.max_batch_size, args.max_seq_len, self.n_kv_heads, self.head_dim))
 
-    def forward(
-        self,
-        x: torch.Tensor,
-        start_pos: int,
-        freqs_complex: torch.Tensor
-    ):
+    def forward(self, x: torch.Tensor, start_pos: int, freqs_complex: torch.Tensor):
+        
         batch_size, seq_len, _ = x.shape  # (batch, 1, Dim)
 
         # (batch, 1, Dim) -> (batch, 1, H_Q * Head_Dim)
@@ -160,10 +156,7 @@ class SelfAttention(nn.Module):
 
 
 class FeedForward(nn.Module):
-    def __init__(
-        self,
-        args: ModelArgs
-    ):
+    def __init__( self, args: ModelArgs ):
         super().__init__()
 
         hidden_dim = 4 * args.dim
