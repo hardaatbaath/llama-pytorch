@@ -119,12 +119,12 @@ class LLaMA:
         return (out_tokens, out_text)
     
     def _sample_top_p(self, probs, p):
-        # (B, vocab_size)
+        # (batch, vocab_size)
         probs_sort, probs_idx = torch.sort(probs, dim = -1, descending = True)
-        # (B, vocab_size)
+        # (batch, vocab_size)
         probs_sum = torch.cumsum(probs_sort, dim = -1)
 
-        # (B, vocab_size)
+        # (batch, vocab_size)
         # (Substracting "probs_sort" shifts the cumulative sum by 1 position to the right before masking)
         mask = probs_sum - probs_sort > p 
 
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     prompts = [
         "Simply put, the theory of relativity states that ",
         "If Google was an Italian company founded in Milan, it would be called Googlano",
-        "Mama Mia."
+        "Mama Mia had "
     ]
 
     model = LLaMA.build(
