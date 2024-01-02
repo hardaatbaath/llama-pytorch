@@ -89,10 +89,10 @@ class SelfAttention(nn.Module):
         # Indicates the dimension of each head, that is, the part of the embedding that each head will be responsible for
         self.head_dim = args.dim // args.n_heads
 
-        self.wq = nn.Linear(args.dim, args.n_heads * self.head_dim, bias = False)
-        self.wk = nn.Linear(args.dim, self.n_kv_heads * self.head_dim, bias = False)
-        self.wv = nn.Linear(args.dim, self.n_kv_heads * self.head_dim, bias = False)
-        self.wo = nn.Linear(args.n_heads * self.head_dim, args.dim, bias = False)
+        self.wq = nn.Linear(args.dim, args.n_heads * self.head_dim, bias = False)    # W_q
+        self.wk = nn.Linear(args.dim, self.n_kv_heads * self.head_dim, bias = False) # W_k
+        self.wv = nn.Linear(args.dim, self.n_kv_heads * self.head_dim, bias = False) # W_v
+        self.wo = nn.Linear(args.n_heads * self.head_dim, args.dim, bias = False)    # W_o
 
         self.cache_k = torch.zeros((args.max_batch_size, args.max_seq_len, self.n_kv_heads, self.head_dim))
         self.cache_v = torch.zeros((args.max_batch_size, args.max_seq_len, self.n_kv_heads, self.head_dim))
