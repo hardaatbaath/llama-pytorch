@@ -41,7 +41,7 @@ def apply_rotary_embeddings(x: torch.Tensor, freqs_complex: torch.Tensor, device
     x_complex = torch.view_as_complex(x.float().reshape(*x.shape[:-1], -1, 2))
 
     # Reshape the freqs_complex tensor to match the shape of the x_complex tensor. So we need to add the batch dimension and the head dimension
-    # (Seq_Len, Head_Dim/2) --> (1, Seq_Len, 1, Head_Dim/2)
+    # (Seq_Len, Head_Dim/2) -> (1, Seq_Len, 1, Head_Dim/2)
     freqs_complex = freqs_complex.unsqueeze(0).unsqueeze(2)
 
     # Multiply each complex number in the x_complex tensor by the corresponding complex number in the freqs_complex tensor
@@ -115,9 +115,9 @@ class SelfAttention(nn.Module):
         # (batch, 1, H_KV * Head_Dim) -> (batch, 1, H_KV, Head_Dim)
         xv = xv.view(batch_size, seq_len, self.n_kv_heads, self.head_dim)
 
-        # (batch, 1, H_Q, Head_Dim) --> (batch, 1, H_Q, Head_Dim)
+        # (batch, 1, H_Q, Head_Dim) -> (batch, 1, H_Q, Head_Dim)
         xq = apply_rotary_embeddings(xq, freqs_complex, device=x.device)
-        # (batch, 1, H_KV, Head_Dim) --> (batch, 1, H_KV, Head_Dim)
+        # (batch, 1, H_KV, Head_Dim) -> (batch, 1, H_KV, Head_Dim)
         xk = apply_rotary_embeddings(xk, freqs_complex, device=x.device)
 
         # Replace the entry in the cache
@@ -131,9 +131,9 @@ class SelfAttention(nn.Module):
 
         # Since every group of Q shares the same K and V heads, just repeat the K and V heads for every Q in the same group.
 
-        # (batch, Seq_Len_KV, H_KV, Head_Dim) --> (batch, Seq_Len_KV, H_Q, Head_Dim)
+        # (batch, Seq_Len_KV, H_KV, Head_Dim) -> (batch, Seq_Len_KV, H_Q, Head_Dim)
         keys = repeat_kv(keys, self.n_rep)
-        # (batch, Seq_Len_KV, H_KV, Head_Dim) --> (batch, Seq_Len_KV, H_Q, Head_Dim)
+        # (batch, Seq_Len_KV, H_KV, Head_Dim) -> (batch, Seq_Len_KV, H_Q, Head_Dim)
         values = repeat_kv(values, self.n_rep)
 
         # (batch, 1, H_Q, Head_Dim) -> (batch, H_Q, 1, Head_Dim)
@@ -171,16 +171,16 @@ class FeedForward(nn.Module):
         self.w3 = nn.Linear(args.dim, hidden_dim, bias = False)
 
     def forward(self, x: torch.Tensor):
-        # (batch, Seq_Len, Dim) --> (batch, Seq_Len, Hidden_Dim)
+        # (batch, Seq_Len, Dim) -> (batch, Seq_Len, Hidden_Dim)
         swish = F.silu(self.w1(x))
 
-        # (batch, Seq_Len, Dim) --> (batch, Seq_Len, Hidden_Dim)
+        # (batch, Seq_Len, Dim) -> (batch, Seq_Len, Hidden_Dim)
         x_V = self.w3(x)
 
-        # (batch, Seq_Len, Hidden_Dim) * (batch, Seq_Len, Hidden_Dim) --> (batch, Seq_Len, Hidden_Dim)
+        # (batch, Seq_Len, Hidden_Dim) * (batch, Seq_Len, Hidden_Dim) -> (batch, Seq_Len, Hidden_Dim)
         x = swish * x_V
         
-        # (batch, Seq_Len, Hidden_Dim) --> (batch, Seq_Len, Dim)
+        # (batch, Seq_Len, Hidden_Dim) -> (batch, Seq_Len, Dim)
         x = self.w2(x)
         return x
 
@@ -204,11 +204,11 @@ class EncoderBlock(nn.Module):
         self.ffn_norm = RMSNorm(args.dim, eps = args.norm_eps)
     
     def forward(self, x: torch.Tensor, start_pos: int, freqs_complex: torch.Tensor):
-        # (batch, Seq_Len, Dim) + (batch, Seq_Len, Dim) --> (batch, Seq_Len, Dim)
+        # (batch, Seq_Len, Dim) + (batch, Seq_Len, Dim) -> (batch, Seq_Len, Dim)
         h = x + self.attention.forward(
             self.attention_norm(x), start_pos, freqs_complex
         )
-        # (batch, Seq_Len, Dim) + (batch, Seq_Len, Dim) --> (batch, Seq_Len, Dim)
+        # (batch, Seq_Len, Dim) + (batch, Seq_Len, Dim) -> (batch, Seq_Len, Dim)
         out = h + self.feed_forward.forward(self.ffn_norm(h))
         return out
 
